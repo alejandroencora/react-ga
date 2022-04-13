@@ -28,24 +28,24 @@ let _alwaysSendToDefaultTracker = true;
 let _redactEmail = true;
 
 const internalGa = (...args) => {
-  if (_testMode) return TestModeAPI.ga(...args);
+  if (_testMode) return TestModeAPI.gtag(...args);
   if (_isNotBrowser) return false;
-  if (!window.ga)
+  if (!window.gtag)
     return warn(
       'ReactGA.initialize must be called first or GoogleAnalytics should be loaded manually'
     );
-  return window.ga(...args);
+  return window.gtag(...args);
 };
 
 function _format(s) {
   return format(s, _titleCase, _redactEmail);
 }
 
-function _gaCommand(trackerNames, ...args) {
+function _gtagCommand(trackerNames, ...args) {
   const command = args[0];
   if (typeof internalGa === 'function') {
     if (typeof command !== 'string') {
-      warn('ga command must be a string');
+      warn('gtag command must be a string');
       return;
     }
 
@@ -59,9 +59,9 @@ function _gaCommand(trackerNames, ...args) {
   }
 }
 
-function _initialize(gaTrackingID, options) {
-  if (!gaTrackingID) {
-    warn('gaTrackingID is required in initialize()');
+function _initialize(gtagTrackingID, options) {
+  if (!gtagTrackingID) {
+    warn('gtagTrackingID is required in initialize()');
     return;
   }
   if (options) {
@@ -83,9 +83,9 @@ function _initialize(gaTrackingID, options) {
   }
 
   if (options && options.gaOptions) {
-    internalGa('create', gaTrackingID, options.gaOptions);
+    internalGa('create', gtagTrackingID, options.gaOptions);
   } else {
-    internalGa('create', gaTrackingID, 'auto');
+    internalGa('create', gtagTrackingID, 'auto');
   }
 }
 
@@ -124,19 +124,19 @@ export function initialize(configsOrTrackingId, options) {
 }
 
 /**
- * ga:
- * Returns the original GA object.
+ * gtag:
+ * Returns the original gtag object.
  */
-export function ga(...args) {
+export function gtag(...args) {
   if (args.length > 0) {
     internalGa(...args);
     if (_debug) {
-      log("called ga('arguments');");
+      log("called gtag('arguments');");
       log(`with arguments: ${JSON.stringify(args)}`);
     }
   }
 
-  return window.ga;
+  return window.gtag;
 }
 
 /**
@@ -160,26 +160,26 @@ export function set(fieldsObject, trackerNames) {
     warn('empty `fieldsObject` given to .set()');
   }
 
-  _gaCommand(trackerNames, 'set', fieldsObject);
+  _gtagCommand(trackerNames, 'set', fieldsObject);
 
   if (_debug) {
-    log("called ga('set', fieldsObject);");
+    log("called gtag('set', fieldsObject);");
     log(`with fieldsObject: ${JSON.stringify(fieldsObject)}`);
   }
 }
 
 /**
  * send:
- * Clone of the low level `ga.send` method
+ * Clone of the low level `gtag.send` method
  * WARNING: No validations will be applied to this
  * @param  {Object} fieldObject - field object for tracking different analytics
  * @param  {Array} trackerNames - trackers to send the command to
  * @param {Array} trackerNames - (optional) a list of extra trackers to run the command on
  */
 export function send(fieldObject, trackerNames) {
-  _gaCommand(trackerNames, 'send', fieldObject);
+  _gtagCommand(trackerNames, 'send', fieldObject);
   if (_debug) {
-    log("called ga('send', fieldObject);");
+    log("called gtag('send', fieldObject);");
     log(`with fieldObject: ${JSON.stringify(fieldObject)}`);
     log(`with trackers: ${JSON.stringify(trackerNames)}`);
   }
@@ -209,15 +209,15 @@ export function pageview(rawPath, trackerNames, title) {
     extraFields.title = title;
   }
 
-  if (typeof ga === 'function') {
-    _gaCommand(trackerNames, 'send', {
+  if (typeof gtag === 'function') {
+    _gtagCommand(trackerNames, 'send', {
       hitType: 'pageview',
       page: path,
       ...extraFields
     });
 
     if (_debug) {
-      log("called ga('send', 'pageview', path);");
+      log("called gtag('send', 'pageview', path);");
       let extraLog = '';
       if (title) {
         extraLog = ` and title: ${title}`;
@@ -247,12 +247,12 @@ export function modalview(rawModalName, trackerNames) {
     return;
   }
 
-  if (typeof ga === 'function') {
+  if (typeof gtag === 'function') {
     const path = `/modal/${modalName}`;
-    _gaCommand(trackerNames, 'send', 'pageview', path);
+    _gtagCommand(trackerNames, 'send', 'pageview', path);
 
     if (_debug) {
-      log("called ga('send', 'pageview', path);");
+      log("called gtag('send', 'pageview', path);");
       log(`with path: ${path}`);
     }
   }
@@ -271,7 +271,7 @@ export function timing(
   { category, variable, value, label } = {},
   trackerNames
 ) {
-  if (typeof ga === 'function') {
+  if (typeof gtag === 'function') {
     if (!category || !variable || typeof value !== 'number') {
       warn(
         'args.category, args.variable ' +
@@ -312,7 +312,7 @@ export function event(
   { category, action, label, value, nonInteraction, transport, ...args } = {},
   trackerNames
 ) {
-  if (typeof ga === 'function') {
+  if (typeof gtag === 'function') {
     // Simple Validation
     if (!category || !action) {
       warn('args.category AND args.action are required in event()');
@@ -386,7 +386,7 @@ export function event(
  * @param {Array} trackerNames - (optional) a list of extra trackers to run the command on
  */
 export function exception({ description, fatal }, trackerNames) {
-  if (typeof ga === 'function') {
+  if (typeof gtag === 'function') {
     // Required Fields
     const fieldObject = {
       hitType: 'exception'
@@ -419,7 +419,7 @@ export const plugin = {
    * @param trackerName {String} optional e.g 'trackerName'
    */
   require: (rawName, options, trackerName) => {
-    if (typeof ga === 'function') {
+    if (typeof gtag === 'function') {
       // Required Fields
       if (!rawName) {
         warn('`name` is required in .require()');
@@ -443,16 +443,16 @@ export const plugin = {
           warn('Empty `options` given to .require()');
         }
 
-        ga(requireString, name, options);
+        gtag(requireString, name, options);
 
         if (_debug) {
-          log(`called ga('require', '${name}', ${JSON.stringify(options)}`);
+          log(`called gtag('require', '${name}', ${JSON.stringify(options)}`);
         }
       } else {
-        ga(requireString, name);
+        gtag(requireString, name);
 
         if (_debug) {
-          log(`called ga('require', '${name}');`);
+          log(`called gtag('require', '${name}');`);
         }
       }
     }
@@ -477,7 +477,7 @@ export const plugin = {
       [actionType, payload] = args;
     }
 
-    if (typeof ga === 'function') {
+    if (typeof gtag === 'function') {
       if (typeof pluginName !== 'string') {
         warn('Expected `pluginName` arg to be a String.');
       } else if (typeof action !== 'string') {
@@ -486,9 +486,9 @@ export const plugin = {
         const command = `${pluginName}:${action}`;
         payload = payload || null;
         if (actionType && payload) {
-          ga(command, actionType, payload);
+          gtag(command, actionType, payload);
           if (_debug) {
-            log(`called ga('${command}');`);
+            log(`called gtag('${command}');`);
             log(
               `actionType: "${actionType}" with payload: ${JSON.stringify(
                 payload
@@ -496,15 +496,15 @@ export const plugin = {
             );
           }
         } else if (payload) {
-          ga(command, payload);
+          gtag(command, payload);
           if (_debug) {
-            log(`called ga('${command}');`);
+            log(`called gtag('${command}');`);
             log(`with payload: ${JSON.stringify(payload)}`);
           }
         } else {
-          ga(command);
+          gtag(command);
           if (_debug) {
-            log(`called ga('${command}');`);
+            log(`called gtag('${command}');`);
           }
         }
       }
@@ -524,7 +524,7 @@ export function outboundLink(args, hitCallback, trackerNames) {
     return;
   }
 
-  if (typeof ga === 'function') {
+  if (typeof gtag === 'function') {
     // Simple Validation
     if (!args || !args.label) {
       warn('args.label is required in outboundLink()');
@@ -567,7 +567,7 @@ export function outboundLink(args, hitCallback, trackerNames) {
     // Send to GA
     send(fieldObject, trackerNames);
   } else {
-    // if ga is not defined, return the callback so the application
+    // if gtag is not defined, return the callback so the application
     // continues to work as expected
     setTimeout(hitCallback, 0);
   }
@@ -577,7 +577,7 @@ export const testModeAPI = TestModeAPI;
 
 export default {
   initialize,
-  ga,
+  gtag,
   set,
   send,
   pageview,

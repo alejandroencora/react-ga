@@ -3,7 +3,7 @@ import * as Defaults from './core';
 
 export const { initialize } = Defaults;
 export const { addTrackers } = Defaults;
-export const { ga } = Defaults;
+export const { gtag } = Defaults;
 export const { set } = Defaults;
 export const { send } = Defaults;
 export const { pageview } = Defaults;

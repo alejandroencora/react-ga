@@ -168,8 +168,8 @@ export function initialize(
 ): void;
 export function addTrackers(trackingCode: string): void;
 export function addTrackers(trackers: Tracker[]): void;
-export function ga(): (...args: any[]) => void;
-export function ga(...args: any[]): void;
+export function gtag(): (...args: any[]) => void;
+export function gtag(...args: any[]): void;
 export function resetCalls(): void;
 export function set(
   fieldsObject: FieldsObject,
